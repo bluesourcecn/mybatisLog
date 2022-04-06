@@ -26,6 +26,8 @@
     </div>
     <div style="margin-left: 110px;">
         <button type="button" class="layui-btn layui-btn-warm" onclick="transLog()">转换并复制</button>
+        <button type="button" class="layui-btn layui-btn-warm" onclick="clearLog()">清空输入 </button>
+        <button type="button" class="layui-btn layui-btn-warm" onclick="clearOut()">清空输出 </button>
     </div>
     <br>
     <br>
@@ -36,18 +38,25 @@
             </a>
         </label>
         <div class="layui-input-block">
-            <textarea style="border: 2px solid red; display: none;" id="sql" name="sql" readonly
-                class="layui-textarea">
-            </textarea>
+            <textarea style="border: 2px solid red; display: none; height: 300px;" id="sql" name="sql" readonly
+                class="layui-textarea"></textarea>
         </div>
     </div>
     <script src="layui/layui.js" charset="utf-8"></script>
     <script>
         /**
-         * 解析sql
+         * 处理日志
          */
         function transLog() {
             var textVa = document.getElementById("log").value;
+            getSql(textVa);
+            copyToClip();
+        }
+
+        /**
+         * 解析sql
+         */
+        function getSql(textVa) {
             // 获取带问号的SQL语句
             var statementStartIndex = textVa.indexOf('Preparing: ');
             var statementEndIndex = textVa.length - 1;
@@ -59,6 +68,7 @@
             }
             var statementStr = textVa.substring(statementStartIndex + "Preparing: ".length, statementEndIndex);
             statementStr = statementStr.toUpperCase();
+            // console.log(statementStr);
             //获取参数
             var parametersStartIndex = textVa.indexOf('Parameters: ');
             var parametersEndIndex = textVa.length;
@@ -66,11 +76,12 @@
                 if (textVa[i] == "\n") {
                     parametersEndIndex = i;
                     break;
-                } else {
+                } /*else {
                     // console.log(textVa[i]);
-                }
+                }*/
             }
             var parametersStr = textVa.substring(parametersStartIndex + "Parameters: ".length, parametersEndIndex);
+            // console.log(parametersStr);
             // 参数列表
             var parametersStrArr = parametersStr.split(",");
             for (var i = 0; i < parametersStrArr.length; i++) {
@@ -87,27 +98,47 @@
                     statementStr = statementStr.replace("?", tempStr.trim());
                 }
             }
+            var splitLine = ";\n-- ---------------------------------------------------------------------------------------------------------------------\n";
             document.getElementById("sql").style.display = "inline-block";
-            document.getElementById("sql").innerHTML = statementStr;
-            copyToClip(statementStr);
+            document.getElementById("sql").innerHTML += statementStr + splitLine;
+            var newText = textVa.substring(parametersEndIndex);
+            // console.log(newText);
+            // console.log(newText.indexOf('Preparing: '));
+            if (newText.indexOf('Preparing: ') == -1) return;
+            getSql(newText);
         }
 
         /**
          * 复制到剪贴板
          */
-        function copyToClip(content) {
-            var aux = document.createElement("input");
-            aux.setAttribute("value", content);
-            document.body.appendChild(aux);
-            aux.select();
-            document.execCommand("copy");
-            document.body.removeChild(aux);
-            if ("" != content) {
+        function copyToClip() {
+            var sql = document.getElementById("sql");
+            sql.select();  // 选择对象
+            document.execCommand("copy"); // 执行浏览器复制命令
+            if ("" != sql.value) {
                 layer.msg("复制成功，直接粘贴即可");
             } else {
                 layer.alert("转换失败");
             }
         }
+
+        /**
+         * 清空输入
+         */
+        function clearLog() {
+            var log = document.getElementById("log");
+            log.select();
+            log.value = "";
+        }
+
+        /**
+         * 清空输出
+         */
+        function clearOut() {
+            var sql = document.getElementById("sql");
+            sql.innerHTML = "";
+        }
+
     </script>
 </body>
 
