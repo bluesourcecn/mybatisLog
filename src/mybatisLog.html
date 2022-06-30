@@ -98,13 +98,14 @@
                     statementStr = statementStr.replace("?", tempStr.trim());
                 }
             }
-            var splitLine = ";\n-- ---------------------------------------------------------------------------------------------------------------------\n";
             document.getElementById("sql").style.display = "inline-block";
-            document.getElementById("sql").innerHTML += statementStr + splitLine;
+            document.getElementById("sql").innerHTML += statementStr;
             var newText = textVa.substring(parametersEndIndex);
             // console.log(newText);
             // console.log(newText.indexOf('Preparing: '));
             if (newText.indexOf('Preparing: ') == -1) return;
+            var splitLine = ";\n-- ---------------------------------------------------------------------------------------------------------------------\n";
+            document.getElementById("sql").innerHTML += splitLine;
             getSql(newText);
         }
 
